@@ -3,7 +3,7 @@
     "RegistrationAllowed": true,
     "RegistrationToken": "secrettoken",
     "URL": "https://localhost:8080",
-    "Debug": true,
+    "Debug": false,
     "Domain": "localhost",
-    "SqliteFile": "storage/database"
+    "SqliteFile": "db/database"
 }

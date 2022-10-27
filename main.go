@@ -1,41 +1,43 @@
 package main
 
 import (
-	"github.com/koesie10/webauthn/webauthn"
+	"embed"
+	"fmt"
+	. "github.com/Tedyst/Traefik-U2F-SSO/config"
+	"github.com/Tedyst/Traefik-U2F-SSO/internal"
+	"github.com/Tedyst/Traefik-U2F-SSO/storage"
+	"github.com/Tedyst/Traefik-U2F-SSO/web"
+	"github.com/spf13/viper"
 	"log"
 	"net/http"
-	"strconv"
 )
 
-var webauth, _ = webauthn.New(&webauthn.Config{
-	RelyingPartyName:   "webauthn-demo",
-	AuthenticatorStore: storage,
-	Debug:              true,
-})
+//go:embed static/*.html
+var statics embed.FS
 
 func main() {
-	if err := initConfig(); err != nil {
-		log.Fatalf("could not init config. %w", err)
+	if err := InitConfig(); err != nil {
+		panic(fmt.Errorf("could not init config. %w", err))
 	}
-	if err := initLogger(Config); err != nil {
-		log.Fatalf("could not init logger. %w", err)
-	}
-	if err := initStorage(Config); err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
 
-	logger.Info("Started on :", Config.Port)
+	logger, err := internal.InitLogger()
+	if err != nil {
+		log.Fatalf("could not init logger. %v", err)
+	}
+
+	s, err := storage.InitStorage(logger)
+	if err != nil {
+		log.Fatalf("could not init storage. %v", err)
+	}
+	defer s.CloseDb()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", Index)
-	mux.HandleFunc("/webauthn/registration/start", registrationStart)
-	mux.HandleFunc("/webauthn/registration/finish", registrationFinish)
-	mux.HandleFunc("/webauthn/login/start", loginStart)
-	mux.HandleFunc("/webauthn/login/finish", loginFinish)
-	mux.HandleFunc("/verify", verify)
+	handler := web.NewHandler(logger, statics, s)
+	handler.Register(mux)
 
-	if err := http.ListenAndServe(":"+strconv.Itoa(Config.Port), RequestLogger(mux)); err != nil {
+	logger.Info("Started on :", viper.GetString(ConfPort))
+
+	if err := http.ListenAndServe(":"+viper.GetString(ConfPort), internal.RequestLogger(logger, mux)); err != nil {
 		logger.Fatalf("Error in ListenAndServe: %s", err)
 	}
 }
