@@ -3,7 +3,7 @@ services:
   authenticator:
     container_name: authenticator
     build: .
-    restart: unless-stopped
+    #restart: unless-stopped
     volumes:
       - ./db:/db
     environment:
