@@ -1,8 +1,6 @@
 package web
 
 import (
-	. "github.com/Tedyst/Traefik-U2F-SSO/config"
-	"github.com/spf13/viper"
 	"net/http"
 )
 
@@ -33,7 +31,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// If the registration is allowed in config.json, the page shown is static/index.html, that allows registration using a token.
-	if viper.GetBool(ConfRegistrationAllowed) {
+	if h.config.Registration.Allowed {
 		h.render(w, "static/index.html")
 		return
 	}

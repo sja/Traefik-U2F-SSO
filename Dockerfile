@@ -1,21 +1,31 @@
-FROM alpine:edge AS build
-RUN apk update
-RUN apk upgrade
-RUN apk add --update go=1.12.7-r0 gcc=8.3.0-r0 g++=8.3.0-r0 git
+FROM golang:1.19-alpine AS build
+
+RUN apk update && apk add --update upx
+
 WORKDIR /app
 
+ENV CGO_ENABLED=0
+ENV GOOS=linux
+
 # Downloading dependencies
-ADD go.mod .
+COPY go.mod ./
+COPY go.sum ./
 RUN go mod download
 
-# Generating some files
 ADD . ./
-RUN CGO_ENABLED=1 GO111MODULE=on GOOS=linux go generate
+
+#RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Building the app
-RUN CGO_ENABLED=1 GO111MODULE=on GOOS=linux go build -a -installsuffix cgo .
+RUN go build -o traefik-u2f .
 
-FROM alpine:latest  
-WORKDIR /root/
-COPY --from=0 /app/Traefik-U2F-SSO .
-CMD ["./Traefik-U2F-SSO"]  
+# Compress executable
+RUN upx traefik-u2f
+
+FROM scratch
+WORKDIR /
+COPY --from=build /app/traefik-u2f .
+COPY --from=build /etc/passwd /etc/passwd
+COPY --from=build /etc/group /etc/group
+USER 405
+CMD ["./traefik-u2f"]

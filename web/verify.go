@@ -1,17 +1,14 @@
 package web
 
 import (
-	. "github.com/Tedyst/Traefik-U2F-SSO/config"
-	"github.com/spf13/viper"
 	"net/http"
 )
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	sess, err := h.sessionsStore.Get(r, "auth_session")
 	logger := h.logger.With("Session", sess.ID)
-	u := viper.GetString(ConfURL)
 	if err != nil {
-		http.Redirect(w, r, u, http.StatusSeeOther)
+		http.Redirect(w, r, h.config.URL, http.StatusSeeOther)
 		logger.Debugw("Error getting the session")
 		return
 	}
@@ -24,8 +21,8 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	logger.Debugw("User is not logged in")
 	newURL := r.URL.Query().Get("rd")
 	if newURL != "" {
-		http.Redirect(w, r, u+"?rd="+newURL, http.StatusSeeOther)
+		http.Redirect(w, r, h.config.URL+"?rd="+newURL, http.StatusSeeOther)
 		return
 	}
-	http.Redirect(w, r, u, http.StatusSeeOther)
+	http.Redirect(w, r, h.config.URL, http.StatusSeeOther)
 }

@@ -3,19 +3,23 @@ services:
   authenticator:
     container_name: authenticator
     build: .
-    restart: always
+    restart: unless-stopped
     volumes:
-      - /media/hddext4/Git/Traefik-U2F-SSO/config.json:/root/config.json
-      - /media/hddext4/Git/Traefik-U2F-SSO/storage:/root/storage
+      - ./db:/db
+    environment:
+      U2F_REGISTRATION_ALLOWED: true
+      U2F_REGISTRATION_TOKEN: secrettoken
+      U2F_DB_SQLITE_FILE: /db/database
+      U2F_DEBUG: true
     labels:
       - traefik.port=8080
       - traefik.frontend.rule=Host:auth.stoicatedy.ovh
       - traefik.frontend.headers.customResponseHeaders=Strict-Transport-Security:max-age=63072000; includeSubDomains; preload
-    networks:
-      - default
+#    networks:
+#      - default
 
 
-networks:
-  default:
-    external:
-      name: web
+#networks:
+#  default:
+#    external:
+#      name: web

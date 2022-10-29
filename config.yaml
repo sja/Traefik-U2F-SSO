@@ -1,0 +1,23 @@
+# Default config, can be overridden by env variables
+
+debug: false
+
+# own url, used for redirects
+url: https://localhost:8080
+serve: ':8080'
+
+webauthn:
+  relying_party_name: webauthn-demo
+
+session:
+  # key must be 16, 24 or 32 bytes long (AES-128, AES-192 or AES-256)
+  key: super-secret-key
+  # where to bind auth cookie to
+  domain: localhost
+
+registration:
+  allowed: true
+  token:
+
+db:
+  sqlite_file: storage/database

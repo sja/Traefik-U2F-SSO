@@ -5,13 +5,12 @@ import (
 	"github.com/Tedyst/Traefik-U2F-SSO/storage"
 	_ "github.com/koesie10/webauthn/attestation"
 	"github.com/koesie10/webauthn/webauthn"
-	"github.com/spf13/viper"
 )
 
-func InitWebauthn(storage *storage.Storage) (*webauthn.WebAuthn, error) {
+func InitWebauthn(c config.Config, storage *storage.Storage) (*webauthn.WebAuthn, error) {
 	return webauthn.New(&webauthn.Config{
-		RelyingPartyName:   viper.GetString(config.ConfRelyingPartyName),
+		RelyingPartyName:   c.Webauthn.RelyingPartyName,
 		AuthenticatorStore: storage,
-		Debug:              viper.GetBool(config.ConfDebug),
+		Debug:              c.Debug,
 	})
 }

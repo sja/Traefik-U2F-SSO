@@ -5,12 +5,11 @@ import (
 	"fmt"
 	. "github.com/Tedyst/Traefik-U2F-SSO/config"
 	"github.com/Tedyst/sqlitestore"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
-func InitStorage(logger *zap.SugaredLogger) (*Storage, error) {
-	dsn := fmt.Sprintf("%v?journal_mode=WAL", viper.GetString(ConfSqliteFile))
+func InitStorage(config Config, logger *zap.SugaredLogger) (*Storage, error) {
+	dsn := fmt.Sprintf("%v?journal_mode=WAL", config.Db.SqliteFile)
 	logger.Debugf("open sqlite 3 at '%v'", dsn)
 	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
@@ -23,8 +22,8 @@ func InitStorage(logger *zap.SugaredLogger) (*Storage, error) {
 		return nil, err
 	}
 
-	key := []byte(viper.GetString(ConfSessionKey))
-	sessionsStore, err := createSessionsStore(db, key)
+	key := []byte(config.Session.Key)
+	sessionsStore, err := createSessionsStore(db, key, config.Session.Domain)
 	if err != nil {
 		return nil, err
 	}
@@ -46,12 +45,12 @@ func InitStorage(logger *zap.SugaredLogger) (*Storage, error) {
 	return &storage, nil
 }
 
-func createSessionsStore(db *sql.DB, key []byte) (*sqlitestore.SqliteStore, error) {
+func createSessionsStore(db *sql.DB, key []byte, domain string) (*sqlitestore.SqliteStore, error) {
 	sessionsstore, err := sqlitestore.NewSqliteStoreFromConnection(db, "sessions", "/", 360000, key)
 	if err != nil {
 		return nil, fmt.Errorf("could not init DB: %w", err)
 	}
-	sessionsstore.Options.Domain = viper.GetString(ConfDomain)
+	sessionsstore.Options.Domain = domain
 	sessionsstore.Options.Secure = true
 	sessionsstore.Options.HttpOnly = false
 	return sessionsstore, nil

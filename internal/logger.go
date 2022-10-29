@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	. "github.com/Tedyst/Traefik-U2F-SSO/config"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"net/http"
 	"syscall"
@@ -30,12 +29,12 @@ func RequestLogger(logger *zap.SugaredLogger, targetMux http.Handler) http.Handl
 	})
 }
 
-func InitLogger() (*zap.SugaredLogger, error) {
+func InitLogger(config Config) (*zap.SugaredLogger, error) {
 	zaplog, err := zap.NewProduction()
 	if err != nil {
 		return nil, err
 	}
-	if viper.GetBool(ConfDebug) {
+	if config.Debug {
 		zaplog, _ = zap.NewDevelopment()
 	}
 	logger := zaplog.Sugar()

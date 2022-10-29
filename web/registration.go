@@ -1,16 +1,14 @@
 package web
 
 import (
-	. "github.com/Tedyst/Traefik-U2F-SSO/config"
 	"github.com/Tedyst/Traefik-U2F-SSO/models"
 	"github.com/koesie10/webauthn/webauthn"
-	"github.com/spf13/viper"
 	"net/http"
 )
 
 func (h *Handler) RegistrationFinish(w http.ResponseWriter, r *http.Request) {
 	logger := h.logger
-	if !viper.GetBool(ConfRegistrationAllowed) {
+	if !h.config.Registration.Allowed {
 		http.Error(w, "Registration not allowed in config", http.StatusForbidden)
 		logger.Debug("Registration attempt denied since the registration is disabled in config")
 		return
@@ -34,12 +32,12 @@ func (h *Handler) RegistrationFinish(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) RegistrationStart(w http.ResponseWriter, r *http.Request) {
 	logger := h.logger
-	if !viper.GetBool(ConfRegistrationAllowed) {
+	if !h.config.Registration.Allowed {
 		http.Error(w, "Registration not allowed in config", http.StatusForbidden)
 		logger.Debug("Registration attempt denied since the registration is disabled in config")
 		return
 	}
-	if viper.GetString(ConfRegistrationToken) != r.URL.Query().Get("token") {
+	if h.config.Registration.Token != r.URL.Query().Get("token") {
 		http.Error(w, "Wrong token", http.StatusForbidden)
 		logger.Debug("Registration attempt denied since the token is wrong")
 		return
