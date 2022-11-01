@@ -1,8 +1,9 @@
-version: "2"
+version: "3.8"
 services:
   authenticator:
     container_name: authenticator
     build: .
+    #image: sja/traefik-u2f:latest
     #restart: unless-stopped
     volumes:
       - ./db:/db
@@ -11,15 +12,9 @@ services:
       U2F_REGISTRATION_TOKEN: secrettoken
       U2F_DB_SQLITE_FILE: /db/database
       U2F_DEBUG: true
+    ports:
+      - '8080:8080'
     labels:
       - traefik.port=8080
       - traefik.frontend.rule=Host:auth.stoicatedy.ovh
       - traefik.frontend.headers.customResponseHeaders=Strict-Transport-Security:max-age=63072000; includeSubDomains; preload
-#    networks:
-#      - default
-
-
-#networks:
-#  default:
-#    external:
-#      name: web

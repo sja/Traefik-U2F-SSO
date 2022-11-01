@@ -1,12 +1,9 @@
 package internal
 
 import (
-	"errors"
-	"fmt"
 	. "github.com/Tedyst/Traefik-U2F-SSO/config"
 	"go.uber.org/zap"
 	"net/http"
-	"syscall"
 	"time"
 )
 
@@ -30,18 +27,17 @@ func RequestLogger(logger *zap.SugaredLogger, targetMux http.Handler) http.Handl
 }
 
 func InitLogger(config Config) (*zap.SugaredLogger, error) {
-	zaplog, err := zap.NewProduction()
+	var zapcfg zap.Config
+	if config.Debug {
+		zapcfg = zap.NewDevelopmentConfig()
+	} else {
+		zapcfg = zap.NewProductionConfig()
+	}
+	zaplog, err := zapcfg.Build()
 	if err != nil {
 		return nil, err
 	}
-	if config.Debug {
-		zaplog, _ = zap.NewDevelopment()
-	}
-	logger := zaplog.Sugar()
 
-	if err := logger.Sync(); err != nil && !errors.Is(err, syscall.ENOTTY) {
-		// see https://github.com/uber-go/zap/issues/880
-		panic(fmt.Errorf("fatal error initializing logger: %w", err))
-	}
+	logger := zaplog.Sugar()
 	return logger, nil
 }
