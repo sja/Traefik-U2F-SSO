@@ -4,6 +4,7 @@ import (
 	. "github.com/Tedyst/Traefik-U2F-SSO/config"
 	"go.uber.org/zap"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -14,10 +15,22 @@ func RequestLogger(logger *zap.SugaredLogger, targetMux http.Handler) http.Handl
 
 		targetMux.ServeHTTP(w, r)
 
-		//log request by who(IP address)
+		//log requester ip
 		requesterIP := r.RemoteAddr
+		fwdAddress := r.Header.Get("x-forwarded-for")
 
-		logger.Infow("Loaded page",
+		if fwdAddress != "" {
+			// Got X-Forwarded-For
+			requesterIP = fwdAddress // If it's a single IP, then awesome!
+
+			// If we got an array... grab the first IP
+			ips := strings.Split(fwdAddress, ", ")
+			if len(ips) > 1 {
+				requesterIP = ips[0]
+			}
+		}
+
+		logger.Infow("handled request",
 			"Method", r.Method,
 			"RequestURI", r.RequestURI,
 			"RequesterIP", requesterIP,

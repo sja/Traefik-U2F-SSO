@@ -3,9 +3,9 @@ package main
 import (
 	"embed"
 	. "github.com/Tedyst/Traefik-U2F-SSO/config"
+	"github.com/Tedyst/Traefik-U2F-SSO/handler"
 	"github.com/Tedyst/Traefik-U2F-SSO/internal"
 	"github.com/Tedyst/Traefik-U2F-SSO/storage"
-	"github.com/Tedyst/Traefik-U2F-SSO/web"
 	"log"
 	"net/http"
 )
@@ -32,8 +32,8 @@ func main() {
 	defer logger.Sync()
 
 	mux := http.NewServeMux()
-	handler := web.NewHandler(config, logger, statics, s)
-	handler.Register(mux)
+	h := handler.NewHandler(config, logger, statics, s)
+	h.Register(mux)
 
 	logger.Infof("Started listening on %q", config.Serve)
 

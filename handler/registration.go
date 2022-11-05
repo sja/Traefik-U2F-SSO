@@ -1,4 +1,4 @@
-package web
+package handler
 
 import (
 	"github.com/Tedyst/Traefik-U2F-SSO/models"

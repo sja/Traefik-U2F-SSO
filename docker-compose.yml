@@ -1,5 +1,19 @@
 version: "3.8"
 services:
+  traefik:
+    image: traefik:v2.9
+    command: --providers.docker --log.level=INFO
+    ports:
+      - "8080:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  whoami:
+    image: containous/whoami
+    labels:
+      - traefik.http.routers.whoami.rule=Host(`localhost`)&&Path(`/whoami`)
+      - traefik.http.routers.whoami.middlewares=authenticator
+
   authenticator:
     container_name: authenticator
     build: .
@@ -11,10 +25,13 @@ services:
       U2F_REGISTRATION_ALLOWED: true
       U2F_REGISTRATION_TOKEN: secrettoken
       U2F_DB_SQLITE_FILE: /db/database
+      U2F_URL: http://localhost:8080/login
       U2F_DEBUG: true
     ports:
-      - '8080:8080'
+      - '8081:8080'
     labels:
-      - traefik.port=8080
-      - traefik.frontend.rule=Host:auth.stoicatedy.ovh
-      - traefik.frontend.headers.customResponseHeaders=Strict-Transport-Security:max-age=63072000; includeSubDomains; preload
+      #- traefik.frontend.headers.customResponseHeaders=Strict-Transport-Security:max-age=63072000; includeSubDomains; preload
+      - traefik.http.routers.authenticator.rule=Host(`localhost`)&&(PathPrefix(`/login`)||PathPrefix(`/webauthn`))
+      - traefik.http.middlewares.authenticator.forwardauth.address=http://authenticator:8080/verify
+      - traefik.http.middlewares.authenticator.forwardauth.authResponseHeaders=X-Authenticated-User
+      - traefik.http.middlewares.authenticator.forwardauth.trustForwardHeader=true

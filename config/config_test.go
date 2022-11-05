@@ -19,7 +19,7 @@ func TestInitConfig(t *testing.T) {
 			},
 			func(c Config) {
 				assert.Equal(t, false, c.Debug)
-				assert.Equal(t, "https://localhost:8080", c.URL)
+				assert.Equal(t, "http://localhost:8080", c.URL)
 				assert.Equal(t, ":8080", c.Serve)
 				assert.Equal(t, Registration{true, "123"}, c.Registration)
 				assert.Equal(t, Session{"super-secret-key", "localhost"}, c.Session)

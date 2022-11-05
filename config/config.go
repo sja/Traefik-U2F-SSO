@@ -60,7 +60,7 @@ func InitConfig() Config {
 	AutomaticEnv()
 
 	if err := ReadInConfig(); err != nil {
-		log.Fatal(fmt.Errorf("cannot read config:: %w", err))
+		log.Fatal(fmt.Errorf("cannot read config: %w", err))
 	}
 
 	var config Config

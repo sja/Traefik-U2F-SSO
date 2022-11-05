@@ -3,7 +3,7 @@
 debug: false
 
 # own url, used for redirects
-url: https://localhost:8080
+url: http://localhost:8080
 serve: ':8080'
 
 webauthn:

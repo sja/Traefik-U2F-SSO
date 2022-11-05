@@ -1,4 +1,4 @@
-package web
+package handler
 
 import (
 	"embed"
@@ -42,6 +42,10 @@ func (h *Handler) Register(mux *http.ServeMux) {
 	mux.HandleFunc("/webauthn/registration/start", h.RegistrationStart)
 	mux.HandleFunc("/webauthn/registration/finish", h.RegistrationFinish)
 	mux.HandleFunc("/verify", h.Verify)
+
+	mux.HandleFunc("/.well-known/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+	})
 }
 
 func (h *Handler) render(w http.ResponseWriter, file string) {
