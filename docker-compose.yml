@@ -31,7 +31,7 @@ services:
       - '8081:8080'
     labels:
       #- traefik.frontend.headers.customResponseHeaders=Strict-Transport-Security:max-age=63072000; includeSubDomains; preload
-      - traefik.http.routers.authenticator.rule=Host(`localhost`)&&(PathPrefix(`/login`)||PathPrefix(`/webauthn`))
+      - traefik.http.routers.authenticator.rule=Host(`localhost`)&&(PathPrefix(`/login`)||PathPrefix(`/webauthn`)||PathPrefix(`/logout`))
       - traefik.http.middlewares.authenticator.forwardauth.address=http://authenticator:8080/verify
       - traefik.http.middlewares.authenticator.forwardauth.authResponseHeaders=X-Authenticated-User
       - traefik.http.middlewares.authenticator.forwardauth.trustForwardHeader=true

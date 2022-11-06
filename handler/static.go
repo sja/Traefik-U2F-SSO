@@ -6,7 +6,7 @@ import (
 
 // Index is the main page where the user logs in or registers
 func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
-	sess, err := h.sessionsStore.Get(r, "auth_session")
+	sess, err := h.sessionsStore.Get(r, h.config.Session.CookieName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

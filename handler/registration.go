@@ -18,11 +18,11 @@ func (h *Handler) RegistrationFinish(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO sja: if domain mismatches, we have an error here, log that!
-	sess, err := h.sessionsStore.Get(r, "auth_session")
+	sess, err := h.sessionsStore.Get(r, h.config.Session.CookieName)
 	logger = logger.With("Session", sess.ID, "User", u.Name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logger.Errorw("Error getting a session")
+		logger.Error("Error getting a session", err)
 		return
 	}
 
@@ -39,26 +39,27 @@ func (h *Handler) RegistrationStart(w http.ResponseWriter, r *http.Request) {
 	}
 	if h.config.Registration.Token != r.URL.Query().Get("token") {
 		http.Error(w, "Wrong token", http.StatusForbidden)
-		logger.Debug("Registration attempt denied since the token is wrong")
+		logger.Infow("Registration attempt denied since the token is wrong",
+			"token", r.URL.Query().Get("token"))
 		return
 	}
 	u := &models.User{
 		Name: r.URL.Query().Get("name"),
 	}
 
-	sess, err := h.sessionsStore.Get(r, "auth_session")
+	sess, err := h.sessionsStore.Get(r, h.config.Session.CookieName)
 	logger = logger.With("Session", sess.ID, "User", u.Name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logger.Errorw("Error getting a session")
+		logger.Error("Error getting a session")
 		return
 	}
 
-	logger.Debugw("Started registration")
+	logger.Debug("Started registration")
 	h.webauth.StartRegistration(r, w, u, webauthn.WrapMap(sess.Values))
 
 	if err := sess.Save(r, w); err != nil {
-		h.logger.Error("error persisting registration: %v", err)
+		logger.Error("error persisting registration: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

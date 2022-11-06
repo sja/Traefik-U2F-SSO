@@ -2,11 +2,10 @@ package handler
 
 import (
 	"net/http"
-	"net/url"
 )
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
-	sess, err := h.sessionsStore.Get(r, "auth_session")
+	sess, err := h.sessionsStore.Get(r, h.config.Session.CookieName)
 	logger := h.logger.With("Session", sess.ID)
 	if err != nil {
 		http.Redirect(w, r, h.config.URL, http.StatusSeeOther)
@@ -23,17 +22,16 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redirectToURL := h.config.URL
+	redirectToURL := h.config.URL + "?rd="
 	if redirectToParam := r.URL.Query().Get("rd"); redirectToParam != "" {
-		redirectToURL += "?rd=" + redirectToParam
+		redirectToURL += redirectToParam
 	} else {
-		u, err := url.Parse(r.Header.Get("X-Forwarded-Uri"))
-		if err != nil {
-			logger.Warnf("invalid X-Forwarded-Uri: %q", r.Header.Get("X-Forwarded-Uri"))
-		} else {
-			redirectToURL += "?rd=" + u.String()
-		}
+		u := h.getUrlFromForwardedHeaders(r)
+		redirectToURL += u.String()
 	}
+	/*for name, values := range r.Header {
+		logger = logger.With(name, strings.Join(values, ", "))
+	}*/
 	logger.Debugw("redirecting unauthenticated user", "location", redirectToURL)
 	http.Redirect(w, r, redirectToURL, http.StatusSeeOther)
 }

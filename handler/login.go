@@ -13,7 +13,7 @@ func (h *Handler) LoginStart(w http.ResponseWriter, r *http.Request) {
 	}
 	logger := h.logger.With("User", u.Name)
 
-	sess, err := h.sessionsStore.Get(r, "auth_session")
+	sess, err := h.sessionsStore.Get(r, h.config.Session.CookieName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logger.Errorw("Error getting a session", "Session", sess.ID)
@@ -37,7 +37,7 @@ func (h *Handler) LoginFinish(w http.ResponseWriter, r *http.Request) {
 	}
 	logger := h.logger.With("User", u.Name)
 
-	sess, err := h.sessionsStore.Get(r, "auth_session")
+	sess, err := h.sessionsStore.Get(r, h.config.Session.CookieName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		logger.Errorw("Error getting a session", "Session", sess.ID)

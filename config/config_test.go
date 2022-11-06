@@ -7,6 +7,11 @@ import (
 )
 
 func TestInitConfig(t *testing.T) {
+	// change workdir to parent to load config.yaml
+	err := os.Chdir("..")
+	if err != nil {
+		t.Error(err)
+	}
 	tests := []struct {
 		name  string
 		setup func()
@@ -21,10 +26,10 @@ func TestInitConfig(t *testing.T) {
 				assert.Equal(t, false, c.Debug)
 				assert.Equal(t, "http://localhost:8080", c.URL)
 				assert.Equal(t, ":8080", c.Serve)
-				assert.Equal(t, Registration{true, "123"}, c.Registration)
-				assert.Equal(t, Session{"super-secret-key", "localhost"}, c.Session)
-				assert.Equal(t, Db{"storage/database"}, c.Db)
-				assert.Equal(t, Webauthn{"webauthn-demo"}, c.Webauthn)
+				assert.Equal(t, &Registration{true, "123"}, c.Registration)
+				assert.Equal(t, &Session{"super-secret-key", "localhost", "auth_session"}, c.Session)
+				assert.Equal(t, &Db{"storage/database"}, c.Db)
+				assert.Equal(t, &Webauthn{"webauthn-demo"}, c.Webauthn)
 				assert.NoError(t, c.Validate())
 			},
 		},
@@ -58,6 +63,7 @@ func TestInitConfig(t *testing.T) {
 				_ = os.Setenv("U2F_REGISTRATION_TOKEN", "test-3")
 				_ = os.Setenv("U2F_SESSION_KEY", "test-4")
 				_ = os.Setenv("U2F_SESSION_DOMAIN", "test-5")
+				_ = os.Setenv("U2F_SESSION_COOKIE_NAME", "test-5-1")
 				_ = os.Setenv("U2F_DB_SQLITE_FILE", "test-6")
 				_ = os.Setenv("U2F_WEBAUTHN_RELYING_PARTY_NAME", "test-7")
 			},
@@ -65,10 +71,10 @@ func TestInitConfig(t *testing.T) {
 				assert.Equal(t, true, c.Debug)
 				assert.Equal(t, "test-1", c.URL)
 				assert.Equal(t, "test-2", c.Serve)
-				assert.Equal(t, Registration{false, "test-3"}, c.Registration)
-				assert.Equal(t, Session{"test-4", "test-5"}, c.Session)
-				assert.Equal(t, Db{"test-6"}, c.Db)
-				assert.Equal(t, Webauthn{"test-7"}, c.Webauthn)
+				assert.Equal(t, &Registration{false, "test-3"}, c.Registration)
+				assert.Equal(t, &Session{"test-4", "test-5", "test-5-1"}, c.Session)
+				assert.Equal(t, &Db{"test-6"}, c.Db)
+				assert.Equal(t, &Webauthn{"test-7"}, c.Webauthn)
 				assert.NoError(t, c.Validate())
 			},
 		},

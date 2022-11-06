@@ -1,4 +1,4 @@
-# Default config, can be overridden by env variables
+
 
 debug: false
 
@@ -10,10 +10,11 @@ webauthn:
   relying_party_name: webauthn-demo
 
 session:
-  # key must be 16, 24 or 32 bytes long (AES-128, AES-192 or AES-256)
+  
   key: super-secret-key
-  # where to bind auth cookie to
+  
   domain: localhost
+  cookie_name: auth_session
 
 registration:
   allowed: true

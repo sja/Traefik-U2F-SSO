@@ -4,51 +4,18 @@ import (
 	"fmt"
 	. "github.com/spf13/viper"
 	"log"
-	"os"
-	"path/filepath"
+	"net/url"
 	"strings"
 )
 
-type Registration struct {
-	Allowed bool   `mapstructure:"allowed"`
-	Token   string `mapstructure:"token"`
-}
-
-type Session struct {
-	Key    string `mapstructure:"key"`
-	Domain string `mapstructure:"domain"`
-}
-
-type Db struct {
-	SqliteFile string `mapstructure:"sqlite_file"`
-}
-
-type Webauthn struct {
-	RelyingPartyName string `mapstructure:"relying_party_name"`
-}
-
 type Config struct {
-	Debug        bool         `mapstructure:"debug"`
-	URL          string       `mapstructure:"url"`
-	Serve        string       `mapstructure:"serve"`
-	Registration Registration `mapstructure:"registration"`
-	Session      Session      `mapstructure:"session"`
-	Db           Db           `mapstructure:"db"`
-	Webauthn     Webauthn     `mapstructure:"webauthn"`
-}
-
-func (c *Config) Validate() error {
-	// Check if registration token is set if registration is allowed
-	if c.Registration.Allowed && len(c.Registration.Token) <= 0 {
-		return fmt.Errorf("config error: registration token has to be set, if registration is allowed")
-	}
-
-	// Check if the sqlite db path exists, db files are created automatically
-	dir, _ := filepath.Abs(filepath.Dir(c.Db.SqliteFile))
-	if _, err := os.Stat(dir); err != nil {
-		return fmt.Errorf("config error: path to db does not exist: %v", c.Db.SqliteFile)
-	}
-	return nil
+	Debug        bool          `mapstructure:"debug"`
+	URL          string        `mapstructure:"url"`
+	Serve        string        `mapstructure:"serve"`
+	Registration *Registration `mapstructure:"registration"`
+	Session      *Session      `mapstructure:"session"`
+	Db           *Db           `mapstructure:"db"`
+	Webauthn     *Webauthn     `mapstructure:"webauthn"`
 }
 
 func InitConfig() Config {
@@ -60,7 +27,9 @@ func InitConfig() Config {
 	AutomaticEnv()
 
 	if err := ReadInConfig(); err != nil {
-		log.Fatal(fmt.Errorf("cannot read config: %w", err))
+		if _, ok := err.(ConfigFileNotFoundError); !ok {
+			log.Fatal(fmt.Errorf("cannot read config: %w", err))
+		}
 	}
 
 	var config Config
@@ -73,4 +42,20 @@ func InitConfig() Config {
 			ConfigFileUsed(), AllSettings())
 	}
 	return config
+}
+
+func (c *Config) Validate() error {
+	if _, err := url.Parse(c.URL); err != nil {
+		return fmt.Errorf("config error: URL not parsable: %q", c.URL)
+	}
+
+	if err := c.Db.Validate(); err != nil {
+		return err
+	}
+
+	if err := c.Registration.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }
